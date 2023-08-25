@@ -189,7 +189,8 @@ for csv_device in csv_list:
             updated_device['id'] = device['id']
             if csv_device['Current Schedule (IST)'] in group_index:
                 updated_device['server_group_id'] = group_index[csv_device['Current Schedule (IST)']]
-                devices_to_update.append(updated_device)
+                if updated_device['server_group_id'] != device['server_group_id']:
+                    devices_to_update.append(updated_device)
             else:
                 print("Warning - group " + csv_device['Current Schedule (IST)'] + " not found in existing group list!  Skipping device " + updated_device['display_name'])
     if not found:
