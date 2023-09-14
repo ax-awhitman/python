@@ -171,24 +171,28 @@ print("Calling the API to get the device list and group list...")
 device_list = ax_device_list_get(ax_environment)
 group_list = ax_group_list_get(ax_environment)
 
+print("Adding 1 pass lower case to make searching loop more efficent later...")
+for device in device_list:
+    device['display_name_lower'] = device['display_name'].lower()
+
 print("Converitng group list into index for later use...")
 group_index = {}
 for group in group_list:
     if group['name']:
-        group_index[group['name']] = group['id']
+        group_index[group['name'].lower()] = group['id']
 
 print("Matching device changes based on CSV values...")
 devices_to_update = []
 for csv_device in csv_list:
     found = False
     for device in device_list:
-        if device['display_name'] == csv_device['Server']:
+        if device['display_name_lower'] == csv_device['Server'].lower():
             found = True
             updated_device = {}
             updated_device['display_name'] = device['display_name']
             updated_device['id'] = device['id']
-            if csv_device['Current Schedule (IST)'] in group_index:
-                updated_device['server_group_id'] = group_index[csv_device['Current Schedule (IST)']]
+            if csv_device['Current Schedule (IST)'].lower() in group_index:
+                updated_device['server_group_id'] = group_index[csv_device['Current Schedule (IST)'].lower()]
                 if updated_device['server_group_id'] != device['server_group_id']:
                     devices_to_update.append(updated_device)
             else:
