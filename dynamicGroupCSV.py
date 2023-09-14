@@ -148,6 +148,18 @@ parser.add_argument(
     type=str,
     help='File name (and path, if needed) for the CSV file to sync groups for.')
 
+parser.add_argument(
+    '-csv_column_server_name',
+    type=str,
+    default='Server',
+    help='(Optional - Default to "Server")  Column name in CSV that contains the server name to compare.')
+
+parser.add_argument(
+    '-csv_column_group_name',
+    type=str,
+    default='Current Schedule (IST)',
+    help='(Optional - Default to "Current Schedule (IST)")  Column name in CSV that contains the group name to compare.')
+
 args = parser.parse_args()
 # --End parse command line arguments-- #
 
@@ -157,6 +169,8 @@ args = parser.parse_args()
 ax_environment = {}
 ax_environment['automox-org-id'] = args.ax_org_id
 ax_environment['automox-api-key'] = args.ax_api_key
+csv_column_server_name = args.csv_column_server_name
+csv_column_group_name = args.csv_column_group_name
 
 csv_file = args.csv_file
 
@@ -186,19 +200,19 @@ devices_to_update = []
 for csv_device in csv_list:
     found = False
     for device in device_list:
-        if device['display_name_lower'] == csv_device['Server'].lower():
+        if device['display_name_lower'] == csv_device[csv_column_server_name].lower():
             found = True
             updated_device = {}
             updated_device['display_name'] = device['display_name']
             updated_device['id'] = device['id']
-            if csv_device['Current Schedule (IST)'].lower() in group_index:
-                updated_device['server_group_id'] = group_index[csv_device['Current Schedule (IST)'].lower()]
+            if csv_device[csv_column_group_name].lower() in group_index:
+                updated_device['server_group_id'] = group_index[csv_device[csv_column_group_name].lower()]
                 if updated_device['server_group_id'] != device['server_group_id']:
                     devices_to_update.append(updated_device)
             else:
-                print("Warning - group " + csv_device['Current Schedule (IST)'] + " not found in existing group list!  Skipping device " + updated_device['display_name'])
+                print("Warning - group " + csv_device[csv_column_group_name] + " not found in existing group list!  Skipping device " + updated_device['display_name'])
     if not found:
-        print("Warning - device from CSV " + csv_device['Server'] + " not found in Automox!  Skipping device.")
+        print("Warning - device from CSV " + csv_device[csv_column_server_name] + " not found in Automox!  Skipping device.")
 
 if len(devices_to_update) > 0:
     print("Updating devices using the API...")
